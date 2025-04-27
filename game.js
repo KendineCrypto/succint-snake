@@ -1,13 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 400;
-canvas.height = 400;
+canvas.width = 500;
+canvas.height = 500;
 
 let snake, direction, newDirection, star, score, highScore = 0, gameRunning;
+let starRotation = 0;
 
 function initGame() {
-    snake = [{ x: 200, y: 200 }];
+    snake = [{ x: 240, y: 240 }];
     direction = { x: 20, y: 0 };
     newDirection = { x: 20, y: 0 };
     star = generateStar();
@@ -73,29 +74,38 @@ function generateStar() {
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Yıldızı çiz
+    // Yıldızı çiz (dönen)
+    starRotation += 0.1;
+    ctx.save();
+    ctx.translate(star.x + 10, star.y + 10);
+    ctx.rotate(starRotation);
     ctx.fillStyle = "gold";
-    drawStar(star.x + 10, star.y + 10, 5, 6, 12);
+    drawStar(0, 0, 5, 5, 12);
+    ctx.restore();
 
-    // Yılanı çiz (Gözlerle birlikte)
+    // Yılanı çiz (daha profesyonel)
     snake.forEach((segment, index) => {
-        ctx.fillStyle = index === 0 ? "#007f00" : "#00cc00";
+        const gradient = ctx.createRadialGradient(segment.x + 10, segment.y + 10, 2, segment.x + 10, segment.y + 10, 12);
+        gradient.addColorStop(0, index === 0 ? "#7efff5" : "#00ff99");
+        gradient.addColorStop(1, "#004d4d");
+
+        ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(segment.x + 10, segment.y + 10, index === 0 ? 12 : 10, 0, Math.PI * 2);
         ctx.fill();
 
-        // Gözler
+        // Gözler (sadece baş segmentte)
         if (index === 0) {
             ctx.fillStyle = "white";
             ctx.beginPath();
-            ctx.arc(segment.x + 6, segment.y + 6, 3, 0, Math.PI * 2);
-            ctx.arc(segment.x + 14, segment.y + 6, 3, 0, Math.PI * 2);
+            ctx.arc(segment.x + 5, segment.y + 5, 3, 0, Math.PI * 2);
+            ctx.arc(segment.x + 15, segment.y + 5, 3, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = "black";
             ctx.beginPath();
-            ctx.arc(segment.x + 6, segment.y + 6, 1.5, 0, Math.PI * 2);
-            ctx.arc(segment.x + 14, segment.y + 6, 1.5, 0, Math.PI * 2);
+            ctx.arc(segment.x + 5, segment.y + 5, 1.5, 0, Math.PI * 2);
+            ctx.arc(segment.x + 15, segment.y + 5, 1.5, 0, Math.PI * 2);
             ctx.fill();
         }
     });
@@ -129,19 +139,17 @@ function drawStar(cx, cy, spikes, innerRadius, outerRadius) {
 function endGame() {
     gameRunning = false;
 
-    // Yeni en yüksek skoru güncelle
+    // Yüksek skoru güncelle
     if (score > highScore) {
         highScore = score;
         document.getElementById("highScore").innerText = highScore;
     }
 
-    // Oyunu durdurduktan sonra menüye dön
     setTimeout(() => {
         document.getElementById("gameScreen").style.display = "none";
         document.getElementById("startMenu").style.display = "block";
-    }, 500); // 0.5 saniye bekleme ekleyerek daha doğal bir geçiş sağladık
+    }, 500);
 }
-
 
 // Menü yönetimi
 function startGame() {
